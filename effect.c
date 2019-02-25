@@ -3,6 +3,8 @@
 #include "effect_decay.h"
 #include "effect_hsv.h"
 #include "effect_move1.h"
+#include "effect_move2.h"
+#include <stdlib.h>
 #include "setup.h"
 
 #define EFFECT_WORK_AREA_SIZE 4096
@@ -17,7 +19,6 @@ static const effect_decay_t   decay_red     = { 0x007F00 };
 static const effect_decay_t   decay_green   = { 0x7F0000 };
 
 static const effect_hsv_t     hsv1   = { 0x7F0000 };
-static const effect_move1_t   move1   = { 0x7F0000 };
 
 const struct effect_t effects[] = {
     { "Classico", "Cor azul", &effect_classic_init, &effect_classic_activate, &effect_classic_tick, &classic_blue },
@@ -27,7 +28,8 @@ const struct effect_t effects[] = {
     { "Decay", "Cor verde", &effect_decay_init, &effect_decay_activate, &effect_decay_tick, &decay_green },
     { "Decay", "Cor vermelho", &effect_decay_init, &effect_decay_activate, &effect_decay_tick, &decay_red },
     { "HSV", "Fogo", &effect_hsv_init, &effect_hsv_activate, &effect_hsv_tick, &hsv1 },
-    { "Moviment", "Movimento 1", &effect_move1_init, &effect_move1_activate, &effect_move1_tick, &move1 },
+    { "Animado", "Metade zig-zag", &effect_move1_init, &effect_move1_activate, &effect_move1_tick, NULL },
+    { "Animado", "Total zig-zag", &effect_move2_init, &effect_move2_activate, &effect_move2_tick, NULL },
 };
 
 //static effect_t *current_effect = &effects[0];

@@ -110,6 +110,7 @@ SRC=main.c \
     effect_decay.c \
     effect_hsv.c \
     effect_move1.c \
+    effect_move2.c \
     vsnprintf.c \
     system_stm32f1xx.c  \
     stm32f1xx_it.c  

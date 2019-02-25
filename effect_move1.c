@@ -19,7 +19,7 @@ void effect_move1_init(const effect_t *self PARAM_UNUSED, void *dyndata)
 
 
     compute_hsv(128, 127, dyn->hsvcurve);
-    decay_accel__init( &dyn->decaydata[0], 16, FLOAT2FP16(0.0002) );
+    decay_accel__init( &dyn->decaydata[0], 16, FLOAT2FP16(0.0002) );   // 0.0002
 
     dyn->tick = 0;
 }
@@ -72,9 +72,12 @@ void effect_move1_tick(const effect_t *self PARAM_UNUSED, void *dyndata)
     //effect_move1_t *pvt = (effect_move1_t*)self->pvt;
     effect_move1_dyndata_t *dyn = (effect_move1_dyndata_t*)dyndata;
     int highlight = -1;
-    // xxxxyyy
-    if ((dyn->tick & 0x7)==0x7) {
-        highlight = (dyn->tick)>>3;
+    // dxxxxyy
+    if ((dyn->tick & 0x3)==0x3) {
+        highlight = ((dyn->tick)>>2) & 15;
+        if (dyn->tick&0x40) {
+            highlight = 15 - highlight;
+        }
 
         decay_accel__update( &dyn->decaydata[0], highlight, FLOAT2FP16(1.0) );
     }

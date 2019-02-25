@@ -185,7 +185,7 @@ static void read_inputs(void)
 uint32_t tick10ms_counter = 0;
 volatile uint8_t tick10ms;
 
-#define TICK10MS 9
+#define TICK10MS 4
 
 void tick__handler(void)
 {
@@ -232,15 +232,16 @@ static void rotary__check()
 }
 
 
-
+static uint8_t latch_values = 0;
 static void process_inputs()
 {
     if (GET_BIT(input_values,0)) {
     }
 
-    if (GET_BIT(input_values,1)) {
+    if ((GET_BIT(input_values,1)==1) && (GET_BIT(latch_values,1))==0) {
         effect__activate();
     }
+    latch_values = input_values;
 }
 
 static void redraw()
