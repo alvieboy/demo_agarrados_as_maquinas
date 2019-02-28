@@ -36,7 +36,6 @@ void decay_accel__update(void *self, unsigned index, fixed_t level)
 
         // X = Xo + vo(t) + 1/2at^2.
 
-        //lastlevel[controller] -= ((decayindex[controller]&DECAYM)==DECAYM);
         if (lastlevel[index]>0) {
             fixed_t time = FLOAT2FP16(decayindex[index]);
             time = fmul16(time,time);
@@ -65,7 +64,7 @@ void decay_accel__update(void *self, unsigned index, fixed_t level)
 fixed_t decay_accel__get(void *self, unsigned index)
 {
     LOCAL_STRUCT(self);
-    (void)decayindex;
-    (void)accel;
+    (void)decayindex; // Unused
+    (void)accel;      // Unused
     return lastlevel[index];
 }

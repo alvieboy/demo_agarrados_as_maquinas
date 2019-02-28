@@ -3,7 +3,10 @@
 
 static unsigned char framebuffer[STRIP_LEN*3];
 static volatile uint8_t strip_dirty=0;
-static uint8_t use_linear_table = 0;
+
+static const uint8_t use_linear_table = 0;
+
+// CIE table. To be used if needed (note it's not 128, but 256).
 
 static const unsigned char linearTable[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

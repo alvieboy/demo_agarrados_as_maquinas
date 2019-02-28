@@ -32,11 +32,6 @@
 
 #include <inttypes.h>
 
-/*
- 26 fracbits
- 5 bits
- */
-
 #define FLOAT2FP26(x) ((int32_t)((x)*(1<<26)))
 #define FLOAT2FP16(x) ((int32_t)((x)*(1<<16)))
 #define FIXED_6_26_ROUND_4_DECIMAL FLOAT2FP26(0.00005)

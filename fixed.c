@@ -100,15 +100,6 @@ static int clz(unsigned x)
 fixed_t fln16(fixed_t val)
 {
     int fracv, intv, y, ysq, fracr, bitpos;
-    /*
-    fracv    -    initial fraction part from "val"
-    intv    -    initial integer part from "val"
-    y        -    (fracv-1)/(fracv+1)
-    ysq        -    y*y
-    fracr    -    ln(fracv)
-    bitpos    -    integer part of log2(val)
-    */
-    
     //const int ILN2 = 94548;        /* 1/ln(2) with 2^16 as base*/
     const int ILOG2E = 45426;    /* 1/log2(e) with 2^16 as base */
 

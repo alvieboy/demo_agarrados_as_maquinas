@@ -2,9 +2,14 @@
 #include "defs.h"
 #include <stdio.h>
 #include "fft.h"
-#define FFT_M 9  /* 512 */
 
-static fixed_t window[512] = {
+#define FFT_M 9  /* 2^9 == 512 samples */
+
+#define FFT_N (1<<FFT_M)
+#define FFT_N_D2 (FFT_N>>1)
+#define FFT_N_M1 (FFT_N-1)
+
+static fixed_t window[FFT_N] = {
 	0x00000000,
 	0x00000002,
 	0x00000009,
@@ -542,24 +547,17 @@ const fixed_t __sincostable[] = {
     0x0000fffe  // cos for LE2 512
 };
 
-#define N (1<<FFT_M)
-#define N_D2 (N>>1)
-#define N_M1 (N-1)
-
-#define DBGVAR(x...) /* printf("%s: %d\n",x)*/
-
-void doWindow(fixed_t *in_real)
+void fft__applyWindow(fixed_t *in_real)
 {
     unsigned i;
-    for (i=0;i<256;i++) {
+    for (i=0;i<FFT_N;i++) {
         in_real[i] = fmul16(in_real[i], window[i]);
     }
 }
 
-
-void doFFT(fixed_t *in_real, fixed_t *in_im)
+void fft__doFFT(fixed_t *in_real, fixed_t *in_im)
 {
-    int j = N_D2;
+    int j = FFT_N_D2;
     int k;
     fixed_t tr, ti;
     const fixed_t  *sincos = &__sincostable[0];
@@ -568,18 +566,15 @@ void doFFT(fixed_t *in_real, fixed_t *in_im)
     fixed_t ur, ui, sr, si;
     // Assumption: in_im is always 0
 
-    for (int i = 1; i <= N-2; i++)
+    for (int i = 1; i <= FFT_N-2; i++)
     {
         if (i < j)
         {
             tr = in_real[j];
-            //ti = in_im[j];
             in_real[j] = in_real[i];
-            //in_im[j] = in_im[i];
             in_real[i] = tr;
-            //in_im[i] = ti;
         }
-        k = N_D2;
+        k = FFT_N_D2;
         while (k <= j)
         {
             j = j-k;
@@ -594,22 +589,13 @@ void doFFT(fixed_t *in_real, fixed_t *in_im)
 
         le2 = le>>1;                // 1st round: le2=1
         ur = FLOAT2FP16(1.0);
-        ui = 0;//0.0;
+        ui = 0;
 
-
-        //sr = cos(M_PI/fixed(le2));
-        //si = fixed(-1) * sin(M_PI/fixed(le2));
         for (int j = 1; j <= le2; j++)
         {
             jm1 = j-1;
-#ifdef DEBUG
-            Serial.print("J "); Serial.println(j);
-#endif
-            for (int i = jm1; i <= N_M1; i += le)
+            for (int i = jm1; i <= FFT_N_M1; i += le)
             {
-#ifdef DEBUG
-                Serial.print("I "); Serial.println(i);
-#endif
                 ip = i+le2;
                 tr = fmul16(in_real[ip],ur) - fmul16(in_im[ip],ui);
                 ti = fmul16(in_real[ip],ui) + fmul16(in_im[ip],ur);
@@ -623,18 +609,8 @@ void doFFT(fixed_t *in_real, fixed_t *in_im)
             sr = sincos[1];
             si = sincos[0];
 
-            //Serial.println((ui*sr).asNative());
-            DBGVAR("SI", si);
-
-            DBGVAR("UI*SI", (ui*si));;
-            DBGVAR("TR*SI", (tr*si));
-            DBGVAR("SR", sr);
-            DBGVAR("UI*SR", (ui*sr));
-            DBGVAR("TR*SR", (tr*sr));
             ur = fmul16(tr,sr) - fmul16(ui,si);
             ui = fmul16(tr,si) + fmul16(ui,sr);
-            DBGVAR("UR",ur);
-            DBGVAR("UI",ui);
         }
         sincos+=2;
     }

@@ -11,9 +11,7 @@ typedef struct {
 
 void effect_hsv_init(const effect_t *self PARAM_UNUSED, void *dyndata)
 {
-    //    effect_hsv_t *pvt = (effect_hsv_t*)self->pvt;
     effect_hsv_dyndata_t *dyn = (effect_hsv_dyndata_t*)dyndata;
-
 
     compute_hsv(128, 127, dyn->hsvcurve);
 
@@ -23,14 +21,12 @@ void effect_hsv_init(const effect_t *self PARAM_UNUSED, void *dyndata)
 void effect_hsv_activate(const effect_t *self PARAM_UNUSED, void *dyndata)
 {
     effect_hsv_dyndata_t *dyn = (effect_hsv_dyndata_t*)dyndata;
-    //effect_hsv_t *pvt = (effect_hsv_t*)self->pvt;
     dyn->tick = 127;
 }
 
 
 void effect_hsv_tick(const effect_t *self PARAM_UNUSED, void *dyndata)
 {
-    //effect_hsv_t *pvt = (effect_hsv_t*)self->pvt;
     effect_hsv_dyndata_t *dyn = (effect_hsv_dyndata_t*)dyndata;
 
     if (dyn->tick!=0) {

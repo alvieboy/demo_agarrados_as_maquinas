@@ -3,7 +3,7 @@
 
 #include "fixed.h"
 
-void doFFT(fixed_t *in_real, fixed_t *in_im);
-void doWindow(fixed_t *in_real);
+void fft__doFFT(fixed_t *in_real, fixed_t *in_im);
+void fft__applyWindow(fixed_t *in_real);
 
 #endif

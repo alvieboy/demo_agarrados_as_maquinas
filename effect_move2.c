@@ -14,9 +14,7 @@ typedef struct {
 
 void effect_move2_init(const effect_t *self PARAM_UNUSED, void *dyndata)
 {
-    //    effect_move2_t *pvt = (effect_move2_t*)self->pvt;
     effect_move2_dyndata_t *dyn = (effect_move2_dyndata_t*)dyndata;
-
 
     compute_hsv(128, 127, dyn->hsvcurve);
     decay_accel__init( &dyn->decaydata[0], 32, FLOAT2FP16(0.0002) );   // 0.0002
@@ -27,7 +25,6 @@ void effect_move2_init(const effect_t *self PARAM_UNUSED, void *dyndata)
 void effect_move2_activate(const effect_t *self PARAM_UNUSED, void *dyndata)
 {
     effect_move2_dyndata_t *dyn = (effect_move2_dyndata_t*)dyndata;
-    //effect_move2_t *pvt = (effect_move2_t*)self->pvt;
     dyn->tick = 127;
 }
 
@@ -66,7 +63,6 @@ static void effect_apply(effect_move2_dyndata_t *dyn)
 
 void effect_move2_tick(const effect_t *self PARAM_UNUSED, void *dyndata)
 {
-    //effect_move2_t *pvt = (effect_move2_t*)self->pvt;
     effect_move2_dyndata_t *dyn = (effect_move2_dyndata_t*)dyndata;
     int highlight = -1;
     // dxxxxyy

@@ -213,7 +213,6 @@ void adc__start()
             Error_Handler();
         }
     }
-    outstring("S");
     if (adc_p>=ADCCONVERTEDVALUES_BUFFER_SIZE) {
         adc_p=0;
     }
@@ -238,9 +237,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 #endif
         adc_p++;
         if (adc_p==ADCCONVERTEDVALUES_BUFFER_SIZE) {
-            //HAL_ADC_Stop_IT(hadc);
-            outstring("F");
-
             adc__conversion_complete_callback();
         }
         set_led(0);
@@ -320,7 +316,6 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc)
     /* Priority: high-priority */
     HAL_NVIC_SetPriority(ADC1_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(ADC1_IRQn);
-    outstring("MSP init ADC\r\n");
 }
 
 uint16_t *adc__raw(void)

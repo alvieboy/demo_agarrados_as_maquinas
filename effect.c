@@ -10,6 +10,7 @@
 #include "uart.h"
 
 #define EFFECT_WORK_AREA_SIZE 4096
+
 static uint8_t workarea[EFFECT_WORK_AREA_SIZE];
 
 static const effect_classic_t classic_blue  = { 0x0000FF };
@@ -35,7 +36,6 @@ const struct effect_t effects[] = {
     { "Audio", "Audio C2 - F6", &effect_fft_init, &effect_fft_activate, &effect_fft_tick, NULL },
 };
 
-//static effect_t *current_effect = &effects[0];
 static int current_effect_index = 0;
 
 #define NUM_EFFECTS (sizeof(effects)/sizeof(effects[0]))
@@ -76,7 +76,6 @@ void effect__tick(void)
 
 void effect__activate(void)
 {
-    uart__printf("Activate %s\r\n", effect()->title);
     effect()->activate(effect(), workarea);
 }
 
