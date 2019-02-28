@@ -4,8 +4,10 @@
 #include "effect_hsv.h"
 #include "effect_move1.h"
 #include "effect_move2.h"
+#include "effect_fft.h"
 #include <stdlib.h>
 #include "setup.h"
+#include "uart.h"
 
 #define EFFECT_WORK_AREA_SIZE 4096
 static uint8_t workarea[EFFECT_WORK_AREA_SIZE];
@@ -30,6 +32,7 @@ const struct effect_t effects[] = {
     { "HSV", "Fogo", &effect_hsv_init, &effect_hsv_activate, &effect_hsv_tick, &hsv1 },
     { "Animado", "Metade zig-zag", &effect_move1_init, &effect_move1_activate, &effect_move1_tick, NULL },
     { "Animado", "Total zig-zag", &effect_move2_init, &effect_move2_activate, &effect_move2_tick, NULL },
+    { "Audio", "Audio C2 - F6", &effect_fft_init, &effect_fft_activate, &effect_fft_tick, NULL },
 };
 
 //static effect_t *current_effect = &effects[0];
@@ -73,6 +76,7 @@ void effect__tick(void)
 
 void effect__activate(void)
 {
+    uart__printf("Activate %s\r\n", effect()->title);
     effect()->activate(effect(), workarea);
 }
 

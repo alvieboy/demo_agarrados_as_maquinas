@@ -24,6 +24,9 @@ void decay_accel__update(void *self, unsigned index, fixed_t level)
 {
     LOCAL_STRUCT(self);
 
+    if (level>FLOAT2FP16(1.0))
+        level=FLOAT2FP16(1.0);
+
     if (level >= lastlevel[index]) {
         lastlevel[index] = level;
         decayindex[index]=0;
@@ -53,8 +56,8 @@ void decay_accel__update(void *self, unsigned index, fixed_t level)
             if (lastlevel[index]<0)
                 lastlevel[index]=0;
 
-            //if (decayindex[controller]<MAXDECAY)
-            decayindex[index]++;
+            if (decayindex[index]<255)
+                decayindex[index]++;
         }
     }
 }

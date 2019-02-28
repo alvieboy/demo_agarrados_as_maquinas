@@ -4,6 +4,7 @@
 #include "defs.h"
 #include <stm32f1xx_hal.h>
 #include <stm32f1xx_hal_gpio.h>
+#include <stm32f1xx_hal_spi.h>
 #include "spi.h"
 
 #define STRIP_LEN (16*3*2)

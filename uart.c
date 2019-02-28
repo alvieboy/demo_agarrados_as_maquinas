@@ -61,14 +61,20 @@ void uart__init(void)
 void outbyte(int c)
 {
     uint8_t ch = c;
+#ifdef STM32F103xB
+    while ((DEBUG_USARTx->SR&UART_FLAG_TXE)==0);
+
+    DEBUG_USARTx->DR = ch;
+#else
     while (HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, 0xFFFF)!=HAL_OK);
+#endif
 }
 
 void outstring(const char *str)
 {
     while (*str) {
         unsigned char c = *str;
-        while (HAL_UART_Transmit(&UartHandle, &c, 1, 0xFFFF)!=HAL_OK);
+        outbyte(c);
         str++;
     }
 }

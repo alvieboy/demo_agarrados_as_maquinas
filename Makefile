@@ -102,8 +102,12 @@ SRC=main.c \
     delay.c \
     font.c \
     cpu.c \
+    adc.c \
     hsv.c \
     strip.c \
+    fft.c \
+    fixed.c \
+    test_signal.c \
     decay_accel.c \
     effect.c \
     effect_classic.c \
@@ -111,6 +115,7 @@ SRC=main.c \
     effect_hsv.c \
     effect_move1.c \
     effect_move2.c \
+    effect_fft.c \
     vsnprintf.c \
     system_stm32f1xx.c  \
     stm32f1xx_it.c  

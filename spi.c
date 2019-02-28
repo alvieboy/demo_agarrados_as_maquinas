@@ -44,10 +44,13 @@ void spi__setprescaler(uint32_t prescale)
         Error_Handler();
         }
         */
+
+#ifdef STM32F103xB
     uint32_t reg = READ_REG(SPI1->CR1);
     reg &= ~SPI_CR1_BR_Msk;
     reg |= prescale & SPI_CR1_BR_Msk;
     WRITE_REG(SPI1->CR1, reg);
+#endif
 }
 
 void spi__init()

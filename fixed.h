@@ -54,10 +54,19 @@ static inline fixed_t fmul26(fixed_t a, fixed_t b)
     return m>>26;
 }
 
+static inline fixed_t fmul31(fixed_t a, fixed_t b)
+{
+    int64_t m = (int64_t)a * (int64_t)b;
+    return m>>31;
+}
+
 static inline fixed_t fmul16(fixed_t a, fixed_t b)
 {
     int64_t m = (int64_t)a * (int64_t)b;
     return m>>16;
 }
+
+fixed_t fexp16(fixed_t val);
+fixed_t fln16(fixed_t val);
 
 #endif

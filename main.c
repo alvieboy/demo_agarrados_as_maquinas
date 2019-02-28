@@ -19,8 +19,29 @@
 #include "hsv.h"
 #include "effect.h"
 #include "strip.h"
+#include "adc.h"
+#include "fft.h"
+
+const uint8_t fft_indexes[32] = {
+    8,9,10,11,
+    12,14,15,16,
+    18,20,21,24,
+    27,30,32,36,
+    38,40,43,48,
+    54,60,64,72,
+    81,86,96,108,
+    121,128,144,161
+};
+fixed_t fft_to_display[32];
 
 void tick__handler(void);
+
+void set_led(uint8_t val);
+
+void set_led(uint8_t val)
+{
+    HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, val);
+}
 
 static void gpio__setup()
 {
@@ -45,11 +66,11 @@ static void gpio__setup()
 
     // LED
 
-    HAL_GPIO_WritePin( GPIOA, GPIO_PIN_13, 0);
+    HAL_GPIO_WritePin( GPIOC, GPIO_PIN_13, 0);
     init.Pin = GPIO_PIN_13;
     init.Mode = GPIO_MODE_OUTPUT_PP;
     init.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init( GPIOA, &init );
+    HAL_GPIO_Init( GPIOC, &init );
 
     // UART
 
@@ -115,6 +136,14 @@ static void gpio__setup()
     init.Speed = GPIO_SPEED_FREQ_HIGH;
     init.Pull = GPIO_PULLUP;
     HAL_GPIO_Init( ROTARY_B_PORT, &init );
+
+    // ADC
+    init.Pin = GPIO_PIN_3;
+    init.Mode = GPIO_MODE_ANALOG;
+    init.Pull = GPIO_NOPULL;
+    init.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init( GPIOA, &init );
+
 
 }
 
@@ -200,8 +229,8 @@ void tick__handler(void)
 
 static void rotary__right(void);
 static void rotary__left(void);
-
-static uint8_t rot_prev_a, rot_prev_b;
+#if 0
+static uint8_t rot_prev_a=1, rot_prev_b=1;
 
 static void process_rotary(uint8_t a, uint8_t b)
 {
@@ -209,8 +238,10 @@ static void process_rotary(uint8_t a, uint8_t b)
     uint8_t rot_b = rot_prev_b;
 
     if (a != rot_a) {
+        printf("A changed %d\n", a);
         rot_prev_a = a;
         if (b != rot_b) {
+            printf("B changed %d\n", a);
             if (a==0) {
                 if (rot_b) {
                     rotary__right();
@@ -222,6 +253,54 @@ static void process_rotary(uint8_t a, uint8_t b)
         rot_prev_b = b;
     }
 }
+#else
+static int8_t rotary_dir=0;
+static int8_t last_a=1, last_b=1;
+
+static inline int rotary__falling_a(uint8_t val)
+{
+    return (val==0) && (last_a==1);
+}
+
+static inline int rotary__falling_b(uint8_t val)
+{
+    return (val==0) && (last_b==1);
+}
+
+static inline int rotary__rising_a(uint8_t val)
+{
+    return (val==1) && (last_a==0);
+}
+
+static inline int rotary__rising_b(uint8_t val)
+{
+    return (val==1) && (last_b==0);
+}
+
+static void process_rotary(uint8_t a, uint8_t b)
+{
+    if (rotary_dir==0) {
+        if (rotary__falling_b(b) && a==0) {
+            rotary_dir=1;
+        } else if (rotary__falling_a(a) && b==0) {
+            rotary_dir=-1;
+        }
+    } else if (rotary_dir==1) {
+        if (rotary__rising_a(a) && b==0) {
+            rotary_dir=0;
+            rotary__right();
+        }
+    } else {
+        if (rotary__rising_b(b) && a==0) {
+            rotary_dir=0;
+            rotary__left();
+        }
+    }
+    last_a=a;
+    last_b=b;
+}
+
+#endif
 
 static void rotary__check()
 {
@@ -268,18 +347,139 @@ static void rotary__left(void)
     redraw();
 }
 
+uint16_t *adcdata = NULL;
+
+void adc__conversion_complete_callback()
+{
+    adcdata = adc__raw();
+}
+
+fixed_t fft_real[512];
+fixed_t fft_im[512];
+
+static fixed_t fsqrt16( fixed_t x )
+{
+    uint32_t t, q, b, r;
+    r = x;
+    b = 0x40000000;
+    q = 0;
+    while( b > 0x40 )
+    {
+        t = q + b;
+        if( r >= t )
+        {
+            r -= t;
+            q = t + b; // equivalent to q += 2*b
+        }
+        r <<= 1;
+        b >>= 1;
+    }
+    q >>= 8;
+    return q;
+}
+
+static int get_magnitude(int index)
+{
+    fixed_t v = fft_real[index];
+    //v.v>>=2;
+    v = fmul16(v,v);
+    fixed_t u = fft_im[index];
+    //u.v>>=2;
+    u = fmul16(u,u);
+    v += u;
+    // TODO: use hardware acceleration here, we already have a module
+    v = fsqrt16(v);
+    /*unsigned v1 = v.v;
+
+    v1 = v1/256;
+    if (v1>0xff)
+    v1=0xff;
+    return v1;
+    */
+    return v;//>>16;
+}
+
+fixed_t *getComputedFFT(void);
+
+fixed_t *getComputedFFT(void)
+{
+    return &fft_to_display[0];
+}
+
+
+static void processADC()
+{
+    memset(fft_im,0,sizeof(fft_im));
+    unsigned i;
+    //int min = 0x7FFFFFFF;
+    //char temp[64];
+//    uart__printf("FFT input values: ");
+    for (i=0;i<512;i++) {
+        // Convert ADC values into 16.16 signed
+        int32_t adc = adcdata[i];
+  //      uart__printf("%d,", adc);
+        adc -= 0x0000800; // 12-bit level
+        adc <<= 4;
+    //    uart__printf("%d\r\n", adc);
+        fft_real[i] = adc;
+    }
+    //uart__puts("\r\n");
+//    lcd_oled__drawString(font_get(FONT_8_16), 0,16+16+16,temp);
+    doWindow(fft_real);
+    doFFT(fft_real,fft_im);
+
+
+    if (0) {
+        uart__printf("FFT out real: ");
+        for (i=0;i<256;i++) {
+            uart__printf("%d\r\n", fft_real[i]);
+        }
+        uart__puts("\r\n");
+        uart__printf("FFT out im: ");
+        for (i=0;i<256;i++) {
+            uart__printf("%d\r\n", fft_im[i]);
+        }
+        uart__puts("\r\n");
+        uart__printf("FFT out mag: ");
+        for (i=0;i<256;i++) {
+            uart__printf("%d\r\n", get_magnitude(i));
+        }
+        uart__puts("\r\n");
+
+    }
+
+    //uart__printf("FFT set mag: ");
+    for (i=0;i<32;i++) {
+        fft_to_display[i] = get_magnitude(fft_indexes[i]);
+      // uart__printf("%d ", fft_to_display[i]);
+    }
+    //uart__puts("\r\n");
+    //adc__start();
+    adcdata = NULL;
+
+}
+int tick_s=0;
+#ifdef STM32F103xB
 int main()
+#else
+int stm_main()
+#endif
 {
     clk__setup();
     SystemCoreClockUpdate();
     HAL_Init();
     gpio__setup();
     uart__init();
+    outstring("Start\r\n");
     spi__init();
     lcd_oled__init();
     configure_inputs(pins, NUM_PINS);
     lcd_oled__clear();
 
+    HAL_GPIO_WritePin( GPIOA, GPIO_PIN_13, 0);
+    set_led(1);
+    adc__init();
+    adc__start();
     //compute_hsv(255,255,NULL);//unsigned steps, uint8_t max, uint8_t *dest);
     effect__init();
     redraw();
@@ -290,10 +490,19 @@ int main()
         process_inputs();
         cpu__wait();
         if (tick10ms) {
+            tick_s++;
+            if(tick_s==100) {
+                tick_s=0;
+                outstring("Tick\r\n");
+            }
             tick10ms=0;
             lcd_oled__update();
             effect__tick();
+            strip__update();
         }
-        strip__update();
+
+        if (adcdata) {
+            processADC();
+        }
     }
 }
